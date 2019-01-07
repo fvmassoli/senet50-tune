@@ -1,7 +1,14 @@
+#################
+# Python imports
+#################
 import os
 import sys
 import torch
 from PIL import Image
+
+##################
+# Pytorcg imports
+##################
 from torch.utils.data import Dataset
 
 
