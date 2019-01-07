@@ -7,15 +7,6 @@ import torch
 import torchvision.transforms as t
 
 
-pil_alg = {"nearest": Image.NEAREST,  # a nearest-neighbor interpolation (better for quality image)
-           "box": Image.BOX,
-           "bicubic": Image.BICUBIC,  # 4x4 pixels
-           "bilinear": Image.BILINEAR,  # 2x2 pixels
-           "lanczos": Image.LANCZOS,  # high quality convolutions-based algorithm with flexible kernel
-           "linear": Image.LINEAR,
-           "hamming": Image.HAMMING}
-
-
 def _get_train_sampler(self):
     images = self.train_data_set.samples
     n_classes = len(self.train_data_set.classes)
@@ -80,10 +71,9 @@ def lower_resolution(img, algo, resolution):
     return img2
 
 
-def create_validation_dataset_for_lower_resolution(base, folder, algo_name, resolution, lowering_resolution_prob):
-    image_output_folder = base+algo_name+'_'+str(resolution)+'_'+str(lowering_resolution_prob)
-    if not os.path.isdir(image_output_folder):
-        os.makedirs(image_output_folder)
+def create_validation_dataset_for_lower_resolution(path, folder, interpolation_algo_val, resolution,
+                                                   lowering_resolution_prob):
+    image_output_folder = path
     desc = 'Creating validation folder with resolution: '+str(resolution)+', and prob: '+str(lowering_resolution_prob)
     for n_ in tqdm(os.listdir(folder), desc=desc):
         f = os.path.join(image_output_folder, n_)
@@ -93,7 +83,7 @@ def create_validation_dataset_for_lower_resolution(base, folder, algo_name, reso
             img = Image.open(os.path.join(folder, n_, img_n))
             img.convert('RGB')
             if torch.rand(1).item() < lowering_resolution_prob:
-                img = lower_resolution(img, pil_alg[algo_name], resolution)
+                img = lower_resolution(img, interpolation_algo_val, resolution)
             f_name = os.path.join(image_output_folder, n_, img_n)
             img.save(f_name)
     return image_output_folder

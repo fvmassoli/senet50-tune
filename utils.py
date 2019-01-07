@@ -7,12 +7,6 @@ import argparse
 # Pytorch imports
 ##################
 import torch
-import torch.nn as nn
-import torchvision.transforms as t
-import torchvision.models as models
-from torch.utils.data import DataLoader
-from torchvision.datasets import ImageFolder
-from torch.utils.data.sampler import WeightedRandomSampler
 
 
 def get_args():
@@ -29,64 +23,15 @@ def get_args():
     parser.add_argument('-cf', '--checkpointFreq', type=int, default=0,
                         help='Frequency (unit=iteration) to checkpoint the model (default: 0 --- i.e. disabled)')
     parser.add_argument('-t', '--runTensorBoard', action='store_true', help='Run tensorboard (default: false)')
-    parser.add_argument('-df', '--dataFolder', help='Path to main data folder')
+    parser.add_argument('-tf', '--trainFolder', help='Training folder path')
+    parser.add_argument('-vf', '--validFolder', help='Validation folder path')
     return parser.parse_args()
 
 
-def make_weights_for_balanced_classes(images, n_classes):
-    """
-    Since the classes are not balanced let's create weights for them
-
-    """
-    count = [0] * n_classes
-    for item in images:
-        count[item[1]] += 1
-    weight_per_class = [0.] * n_classes
-    N = float(sum(count))
-    for i in range(n_classes):
-        weight_per_class[i] = N / float(count[i])
-    weights = [0] * len(images)
-    for idx, val in enumerate(images):
-        weights[idx] = weight_per_class[val[1]]
-    return weights
-
-
-def get_transforms(train, gs=0.2, mean=[]):
-    if train:
-        return t.Compose([
-            t.Resize(256),
-            t.RandomGrayscale(p=gs),
-            t.RandomCrop(224),
-            t.ToTensor(),
-
-        ])
-    else:
-        return t.Compose([
-            t.Resize(256),
-            t.CenterCrop(224),
-            t.ToTensor(),
-
-        ])
-
-
-def get_loaders(train_batch_size, num_workers=1, data_folder=None, cuda_available=False):
-    print("Loading data...")
-    train_data_set = ImageFolder(root=data_folder+'/train', transform=get_transforms(train=True))
-    valid_data_set = ImageFolder(root=data_folder+'/valid', transform=get_transforms(train=False))
-    weights = make_weights_for_balanced_classes(train_data_set.imgs, len(train_data_set.classes))
-    weights = torch.DoubleTensor(weights)
-    sampler = WeightedRandomSampler(weights, len(weights))
-    train_data_loader = DataLoader(dataset=train_data_set,
-                                   sampler=sampler,
-                                   batch_size=train_batch_size,
-                                   num_workers=num_workers,
-                                   pin_memory=cuda_available)
-    valid_data_loader = DataLoader(dataset=valid_data_set,
-                                   batch_size=8,
-                                   num_workers=num_workers,
-                                   pin_memory=cuda_available)
-    print("Data loaded!!!")
-    return train_data_loader, valid_data_loader
+def launch_tensorboard(logdir):
+    import os
+    os.system('tensorboard --logdir=~/ray_results/' + logdir)
+    return
 
 
 def get_model():
@@ -96,9 +41,3 @@ def get_model():
     model = torch.load('./models/senet50_ft_pytorch/senet50_ft_pytorch.pth')
     print("Model loaded!!!")
     return model
-
-
-def launch_tensorboard(logdir):
-    import os
-    os.system('tensorboard --logdir=~/ray_results/' + logdir)
-    return

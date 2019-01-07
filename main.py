@@ -6,6 +6,7 @@ from __future__ import print_function
 # Python imports
 #################
 import os
+import PIL
 import time
 import threading
 import numpy as np
@@ -30,6 +31,7 @@ from ray.tune import Trainable, run_experiments, register_trainable, Experiment
 # local imports
 ################
 from utils import *
+from data_manager.data_manager import DataManager
 
 
 pinned_obj_dict = {}
@@ -128,9 +130,24 @@ def main(args):
 
     ray.init()
 
-    t_loader, v_loader = get_loaders(train_batch_size=16, num_workers=1, data_folder=args.dataFolder, cuda_available=cuda_available)
-    pinned_obj_dict['data_loader_train'] = pin_in_object_store(t_loader)
-    pinned_obj_dict['data_loader_valid'] = pin_in_object_store(v_loader)
+    ####################
+    # Init data manager
+    ####################
+    data_manager = DataManager(train_folder=args.trainFolder,
+                               valid_folder=args.validFolder,
+                               train_batch_size=16,
+                               valid_batch_size=16,
+                               img_resolution=32,
+                               interpolation_algo_name='bilinear',
+                               interpolation_algo_val=PIL.Image.BILINEAR,
+                               lowering_resolution_prob=0.5,
+                               indices_step=100,
+                               training_valid_split=0.1)
+
+    train_data_loader, valid_data_loader, valid_data_loader_original_data = data_manager.get_data_loaders()
+    pinned_obj_dict['data_loader_train'] = pin_in_object_store(train_data_loader)
+    pinned_obj_dict['data_loader_valid'] = pin_in_object_store(valid_data_loader)
+    pinned_obj_dict['data_loader_valid_orig'] = pin_in_object_store(valid_data_loader_original_data)
     pinned_obj_dict['args'] = pin_in_object_store(args)
 
     trainable_name = 'hyp_search_train'
@@ -151,8 +168,9 @@ def main(args):
     ##############################
     space = {
         'lr': hp.uniform('lr', 0.001, 0.1),
-        'optimizer': hp.choice("optimizer", ['SGD', 'Adam']), #, 'Adadelta']), # Adadelta gets the worst results
-        'batch_accumulation': hp.choice("batch_accumulation", [4, 8, 16])
+        'optimizer': hp.choice("optimizer", ['SGD', 'Adam']),
+        'batch_accumulation': hp.choice("batch_accumulation", [4, 8, 16, 32]),
+
     }
     hos = HyperOptSearch(space, max_concurrent=4, reward_attr=reward_attr)
 
