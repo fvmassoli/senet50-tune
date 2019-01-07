@@ -63,8 +63,9 @@ class DataManager(object):
 
         # Get data subsets
         tmp_train_data_set = Subset(self.train_data_set, train_indices)
-        tmp_valid_data_set_lr = Subset(self.self.valid_data_set_lr, valid_indices)
+        tmp_valid_data_set_lr = Subset(self.valid_data_set_lr, valid_indices)
         tmp_valid_data_set_original_data = Subset(self.valid_data_set, valid_indices)
+
         # Create data loaders
         train_data_loader = DataLoader(dataset=tmp_train_data_set,
                                        batch_size=self.train_batch_size,

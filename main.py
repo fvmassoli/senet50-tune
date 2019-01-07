@@ -48,7 +48,11 @@ class TrainerClass(Trainable):
         if self.cuda_available:
             self.model.cuda()
         opt = getattr(torch.optim, self.config['optimizer'])
-        self.optimizer = opt(self.model.parameters(), lr=self.config['lr'])
+        if self.config['optimizer'] == 'SGD':
+            self.optimizer = opt(self.model.parameters(), lr=self.config['lr'], momentum=self.config['momentum'],
+                                 weight_decay=self.config['weight_decay'])
+        else:
+            self.optimizer = opt(self.model.parameters(), lr=self.config['lr'], weight_decay=self.config['weight_decay'])
         self.batch_accumulation = self.config['batch_accumulation']
 
     def _train_iter(self):
@@ -168,7 +172,9 @@ def main(args):
     ##############################
     space = {
         'lr': hp.uniform('lr', 0.001, 0.1),
-        'optimizer': hp.choice("optimizer", ['SGD', 'Adam']),
+        'momentum': hp.uniform('momentum', 0.1, 0.9),
+        'optimizer': hp.choice('optimizer', ['SGD', 'Adam']),
+        'weight_decay': hp.uniform('weight_decay', 1.e-5, 1.e-4),
         'batch_accumulation': hp.choice("batch_accumulation", [4, 8, 16, 32])
     }
     hos = HyperOptSearch(space, max_concurrent=4, reward_attr=reward_attr)
