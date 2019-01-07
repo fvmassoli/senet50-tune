@@ -48,7 +48,7 @@ class TrainerClass(Trainable):
         if self.cuda_available:
             self.model.cuda()
         opt = getattr(torch.optim, self.config['optimizer'])
-        self.optimizer = opt(self.model.classifier[6].parameters(), lr=self.config['lr'])
+        self.optimizer = opt(self.model.parameters(), lr=self.config['lr'])
         self.batch_accumulation = self.config['batch_accumulation']
 
     def _train_iter(self):
@@ -160,7 +160,7 @@ def main(args):
     #############################
     hpb = AsyncHyperBandScheduler(time_attr="training_iteration",
                                   reward_attr=reward_attr,
-                                  grace_period=40,
+                                  grace_period=10,
                                   max_t=300)
 
     ##############################
@@ -169,8 +169,7 @@ def main(args):
     space = {
         'lr': hp.uniform('lr', 0.001, 0.1),
         'optimizer': hp.choice("optimizer", ['SGD', 'Adam']),
-        'batch_accumulation': hp.choice("batch_accumulation", [4, 8, 16, 32]),
-
+        'batch_accumulation': hp.choice("batch_accumulation", [4, 8, 16, 32])
     }
     hos = HyperOptSearch(space, max_concurrent=4, reward_attr=reward_attr)
 

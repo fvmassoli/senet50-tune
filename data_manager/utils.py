@@ -71,10 +71,9 @@ def lower_resolution(img, algo, resolution):
     return img2
 
 
-def create_validation_dataset_for_lower_resolution(path, folder, interpolation_algo_val, resolution,
-                                                   lowering_resolution_prob):
+def create_validation_dataset_for_lower_resolution(path, folder, interpolation_algo_val, resolution):
     image_output_folder = path
-    desc = 'Creating validation folder with resolution: '+str(resolution)+', and prob: '+str(lowering_resolution_prob)
+    desc = 'Creating validation folder with resolution: '+str(resolution)
     for n_ in tqdm(os.listdir(folder), desc=desc):
         f = os.path.join(image_output_folder, n_)
         if not os.path.isdir(f):
@@ -82,8 +81,8 @@ def create_validation_dataset_for_lower_resolution(path, folder, interpolation_a
         for img_n in os.listdir(os.path.join(folder, n_)):
             img = Image.open(os.path.join(folder, n_, img_n))
             img.convert('RGB')
-            if torch.rand(1).item() < lowering_resolution_prob:
-                img = lower_resolution(img, interpolation_algo_val, resolution)
+            # if torch.rand(1).item() < lowering_resolution_prob:
+            img = lower_resolution(img, interpolation_algo_val, resolution)
             f_name = os.path.join(image_output_folder, n_, img_n)
             img.save(f_name)
     return image_output_folder
