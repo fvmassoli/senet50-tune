@@ -74,20 +74,23 @@ class DataManager(object):
         valid_indices = indices[split:]
 
         # Get data subsets
-        tmp_train_data_set = Subset(self.train_data_set, train_indices)
-        tmp_valid_data_set_lr = Subset(self.valid_data_set_lr, valid_indices)
-        tmp_valid_data_set = Subset(self.valid_data_set, valid_indices)
+#        tmp_train_data_set = Subset(self.train_data_set, train_indices)
+#        tmp_valid_data_set_lr = Subset(self.valid_data_set_lr, valid_indices)
+#        tmp_valid_data_set = Subset(self.valid_data_set, valid_indices)
 
         # Create data loaders
-        train_data_loader = DataLoader(dataset=tmp_train_data_set,
+#        train_data_loader = DataLoader(dataset=tmp_train_data_set,
+        train_data_loader = DataLoader(dataset=self.train_data_set,
                                        batch_size=self.train_batch_size,
                                        num_workers=4,
                                        pin_memory=torch.cuda.is_available())
-        valid_data_loader_lr = DataLoader(dataset=tmp_valid_data_set_lr,
+#        valid_data_loader_lr = DataLoader(dataset=tmp_valid_data_set_lr,
+        valid_data_loader_lr = DataLoader(dataset=self.valid_data_set_lr,
                                           batch_size=self.valid_batch_size,
                                           num_workers=4,
                                           pin_memory=torch.cuda.is_available())
-        valid_data_loader = DataLoader(dataset=tmp_valid_data_set,
+#        valid_data_loader = DataLoader(dataset=tmp_valid_data_set,
+        valid_data_loader = DataLoader(dataset=self.valid_data_set,
                                        batch_size=self.valid_batch_size,
                                        num_workers=4,
                                        pin_memory=torch.cuda.is_available())

@@ -62,7 +62,7 @@ class TrainerClass(Trainable):
         progress_bar = tq(self.data_loader_train)
         progress_bar.set_description("Training")
         avg_loss = 0.0
-        for batch_idx, (data, target) in enumerate(progress_bar):
+        for batch_idx, (data, target, _) in enumerate(progress_bar):
             if self.cuda_available:
                 data = data.cuda(non_blocking=True)
                 target = target.cuda(non_blocking=True)
@@ -88,7 +88,7 @@ class TrainerClass(Trainable):
         n_samples = 0
         progress_bar = tq(self.data_loader_valid)
         progress_bar.set_description("Validation")
-        for batch_idx, (data, target) in enumerate(progress_bar):
+        for batch_idx, (data, target, _) in enumerate(progress_bar):
             if self.cuda_available:
                 data = data.cuda(non_blocking=True)
                 target = target.cuda(non_blocking=True)
