@@ -1,0 +1,1 @@
+python main.py -s 13 -c 8 -g 2 -ns 3 -ti 1 -lf 100 -cf 3 -tf ... -vf ... -ir 32 -p 0.5 -is 100 -spt 0.1
