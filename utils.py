@@ -25,6 +25,10 @@ def get_args():
     parser.add_argument('-t', '--runTensorBoard', action='store_true', help='Run tensorboard (default: false)')
     parser.add_argument('-tf', '--trainFolder', help='Training folder path')
     parser.add_argument('-vf', '--validFolder', help='Validation folder path')
+    parser.add_argument('-ir', '--imageResolution', default=32, help='Image resolution (default: 32)')
+    parser.add_argument('-p', '--lowerResolutionProb', default=0.5, type=float, help='Lower resolution prob(default: 0.5)')
+    parser.add_argument('-is', '--indicesStep', default=100, help='Indices step (default: 100)')
+    parser.add_argument('-spt', '--trainValidSplit', default=0.1, type=float, help='Indices step (default: 0.1)')
     return parser.parse_args()
 
 

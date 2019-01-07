@@ -137,12 +137,12 @@ def main(args):
                                valid_folder=args.validFolder,
                                train_batch_size=16,
                                valid_batch_size=16,
-                               img_resolution=32,
+                               img_resolution=args.imageResolution,
                                interpolation_algo_name='bilinear',
                                interpolation_algo_val=PIL.Image.BILINEAR,
-                               lowering_resolution_prob=0.5,
-                               indices_step=100,
-                               training_valid_split=0.1)
+                               lowering_resolution_prob=args.lowerResolutionProb,
+                               indices_step=args.indicesStep,
+                               training_valid_split=args.trainValidSplit)
 
     train_data_loader, valid_data_loader, valid_data_loader_original_data = data_manager.get_data_loaders()
     pinned_obj_dict['data_loader_train'] = pin_in_object_store(train_data_loader)
