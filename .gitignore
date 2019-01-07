@@ -2,3 +2,7 @@
 venv
 venv/*
 *.pyc
+test_images
+*.swp
+MainModel.py
+senet50_ft_pytorch.pth

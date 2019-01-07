@@ -57,7 +57,7 @@ class DataManager(object):
                                             algo_val=self.interpolation_algo_val,
                                             transforms=self._get_valid_transforms(),
                                             lowering_resolution_prob=1.0)
-        valid_data_set = ImageFolder(root=self.lower_resolution_validation_folder,
+        valid_data_set = ImageFolder(root=self.valid_folder,
                                      transform=self._get_valid_transforms())
         print("Data loaded")
         return train_data_set, valid_data_set_lr, valid_data_set

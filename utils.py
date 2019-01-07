@@ -2,11 +2,14 @@
 # Pytorch imports
 ##################
 import torch
+import torch.nn as nn
 
 #################
 # Python imports
 #################
+import os
 import argparse
+import importlib
 
 
 def get_args():
@@ -27,21 +30,25 @@ def get_args():
     parser.add_argument('-vf', '--validFolder', help='Validation folder path')
     parser.add_argument('-ir', '--imageResolution', default=32, help='Image resolution (default: 32)')
     parser.add_argument('-p', '--lowerResolutionProb', default=0.5, type=float, help='Lower resolution prob(default: 0.5)')
-    parser.add_argument('-is', '--indicesStep', default=100, help='Indices step (default: 100)')
+    parser.add_argument('-is', '--indicesStep', type=int, default=100, help='Indices step (default: 100)')
     parser.add_argument('-spt', '--trainValidSplit', default=0.1, type=float, help='Indices step (default: 0.1)')
     return parser.parse_args()
 
 
 def launch_tensorboard(logdir):
-    import os
     os.system('tensorboard --logdir=~/ray_results/' + logdir)
     return
 
 
 def get_model():
-    import importlib
     print("Loading model...")
-    MainModel = importlib.load_source('MainModel', './models/senet50_ft_pytorch/senet50_ft_pytorch.py')
-    model = torch.load('./models/senet50_ft_pytorch/senet50_ft_pytorch.pth')
+    b = '/home/fabiom/faces/vgg_face_2/pytorch_model/senet50-tune'
+#    MainModel = importlib.load_source('MainModel', os.path.joi(b, 'senet50_ft_pytorch.py'))
+    model = torch.load(os.path.join(b, 'senet50_ft_pytorch.pth'))
+    for n, m in model.named_modules():
+        if isinstance(m, nn.BatchNorm2d):
+            m.momentum = 0.1
+            m.eps = 1e-05
+#    print(model)
     print("Model loaded!!!")
     return model
