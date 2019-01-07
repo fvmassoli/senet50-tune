@@ -24,9 +24,9 @@ class VggFace2Dataset(Dataset):
         self.transforms = transforms
         self.lowering_resolution_prob = lowering_resolution_prob
         self._create_images_output_dir()
-        print("="*81)
-        print("="*7, 'Dataset init with: resolution {}, algo {}, lower prob: {}'.format(self.resolution, self.algo, self.lowering_resolution_prob), "="*7)
-        print("="*81)
+        print("="*88)
+        print("="*7, 'Dataset init with: resolution {}, algo {}, lower prob: {}'.format(self.resolution, self.algo_name, self.lowering_resolution_prob), "="*7)
+        print("="*88)
 
     def _create_images_output_dir(self):
         main_output = './data_manager/output_images'

@@ -44,7 +44,7 @@ class DataManager(object):
         self._print_data_summary()
 
     def _init_data_sets(self):
-        print("Loading data ... ")
+        print('Initializing data sets ...')
         train_data_set = VggFace2Dataset(root=self.train_folder,
                                          resolution=self.img_resolution,
                                          algo_name=self.interpolation_algo_name,
@@ -59,10 +59,11 @@ class DataManager(object):
                                             lowering_resolution_prob=1.0)
         valid_data_set = ImageFolder(root=self.valid_folder,
                                      transform=self._get_valid_transforms())
-        print("Data loaded")
+        print('Data Sets created!!!')
         return train_data_set, valid_data_set_lr, valid_data_set
 
     def _init_data_loaders(self):
+        print('Initializing data loaders ...')
         dataset_len = len(self.train_data_set)
         indices = list(np.arange(0, dataset_len, self.indices_step))
         split = int(np.floor(len(indices) * self.training_valid_split))
@@ -74,26 +75,27 @@ class DataManager(object):
         valid_indices = indices[split:]
 
         # Get data subsets
-#        tmp_train_data_set = Subset(self.train_data_set, train_indices)
-#        tmp_valid_data_set_lr = Subset(self.valid_data_set_lr, valid_indices)
-#        tmp_valid_data_set = Subset(self.valid_data_set, valid_indices)
+        tmp_train_data_set = Subset(self.train_data_set, train_indices)
+        tmp_valid_data_set_lr = Subset(self.valid_data_set_lr, valid_indices)
+        tmp_valid_data_set = Subset(self.valid_data_set, valid_indices)
 
         # Create data loaders
-#        train_data_loader = DataLoader(dataset=tmp_train_data_set,
-        train_data_loader = DataLoader(dataset=self.train_data_set,
+        train_data_loader = DataLoader(dataset=tmp_train_data_set,
+#        train_data_loader = DataLoader(dataset=self.train_data_set,
                                        batch_size=self.train_batch_size,
                                        num_workers=4,
                                        pin_memory=torch.cuda.is_available())
-#        valid_data_loader_lr = DataLoader(dataset=tmp_valid_data_set_lr,
-        valid_data_loader_lr = DataLoader(dataset=self.valid_data_set_lr,
+        valid_data_loader_lr = DataLoader(dataset=tmp_valid_data_set_lr,
+#        valid_data_loader_lr = DataLoader(dataset=self.valid_data_set_lr,
                                           batch_size=self.valid_batch_size,
                                           num_workers=4,
                                           pin_memory=torch.cuda.is_available())
-#        valid_data_loader = DataLoader(dataset=tmp_valid_data_set,
-        valid_data_loader = DataLoader(dataset=self.valid_data_set,
+        valid_data_loader = DataLoader(dataset=tmp_valid_data_set,
+#        valid_data_loader = DataLoader(dataset=self.valid_data_set,
                                        batch_size=self.valid_batch_size,
                                        num_workers=4,
                                        pin_memory=torch.cuda.is_available())
+        print('Data Loaders created!!!')
         return train_data_loader, valid_data_loader_lr, valid_data_loader
 
     def get_data_sets(self):
