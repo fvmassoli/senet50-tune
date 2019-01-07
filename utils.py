@@ -1,12 +1,12 @@
-#################
-# Python imports
-#################
-import argparse
-
 ##################
 # Pytorch imports
 ##################
 import torch
+
+#################
+# Python imports
+#################
+import argparse
 
 
 def get_args():

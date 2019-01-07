@@ -1,28 +1,18 @@
 import os
 import sys
 import torch
-import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
 
 
-pil_alg = {"nearest": Image.NEAREST,  # a nearest-neighbor interpolation (better for quality image)
-           "box": Image.BOX,
-           "bicubic": Image.BICUBIC,  # 4x4 pixels
-           "bilinear": Image.BILINEAR,  # 2x2 pixels
-           "lanczos": Image.LANCZOS,  # high quality convolutions-based algorithm with flexible kernel
-           "linear": Image.LINEAR,
-           "hamming": Image.HAMMING}
-
-
 class VggFace2Dataset(Dataset):
-    def __init__(self, root, resolution, algo_name, lowering_resolution_prob=0, transforms=None):
+    def __init__(self, root, resolution, algo_name, algo_val, lowering_resolution_prob=0, transforms=None):
         self.root = root
         self.classes, self.class_to_idx = self._find_classes()
         self.samples = self._make_dataset()
         self.loader = self._get_loader
         self.algo_name = algo_name
-        self.algo = pil_alg[algo_name]
+        self.algo = algo_val
         self.resolution = resolution
         self.transforms = transforms
         self.lowering_resolution_prob = lowering_resolution_prob

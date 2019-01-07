@@ -7,16 +7,16 @@ from .face_dataset import VggFace2Dataset
 
 class DataManager(object):
     def __init__(self,
-                 train_folder=None,
-                 valid_folder=None,
-                 train_batch_size=1,
-                 valid_batch_size=1,
-                 img_resolution=128,
-                 interpolation_algo_name=None,
-                 interpolation_algo_val=0,
-                 lowering_resolution_prob=0,
-                 indices_step=100,
-                 training_valid_split=0.1):
+                 train_folder,
+                 valid_folder,
+                 train_batch_size,
+                 valid_batch_size,
+                 img_resolution,
+                 interpolation_algo_name,
+                 interpolation_algo_val,
+                 lowering_resolution_prob,
+                 indices_step,
+                 training_valid_split):
         self.train_folder = train_folder
         self.valid_folder = valid_folder
         self.train_batch_size = train_batch_size
@@ -49,6 +49,7 @@ class DataManager(object):
         train_data_set = VggFace2Dataset(root=self.train_folder,
                                          resolution=self.img_resolution,
                                          algo_name=self.interpolation_algo_name,
+                                         algo_val=self.interpolation_algo_val,
                                          transforms=get_train_transforms(resize=256, grayed_prob=0.2, crop_size=224),
                                          lowering_resolution_prob=self.lowering_resolution_prob)
         valid_data_set = ImageFolder(root=self.lower_resolution_validation_folder,
