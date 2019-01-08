@@ -46,6 +46,9 @@ class TrainerClass(Trainable):
         print("Cuda is available: {}".format(self.cuda_available))
         self.model = get_model()
         if self.cuda_available:
+            if torch.cuda.device_count() > 1:
+                print('========= Going multi GPU ==========')
+                model = torch.nn.DataParallel(model)
             self.model.cuda()
         opt = getattr(torch.optim, self.config['optimizer'])
         if self.config['optimizer'] == 'SGD':
@@ -132,7 +135,7 @@ def main(args):
     if cuda_available:
         torch.cuda.manual_seed(args.seed)
 
-    ray.init()
+    ray.init(num_cpus=7, num_gpus=2)
 
     ####################
     # Init data manager
