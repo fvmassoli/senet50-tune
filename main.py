@@ -39,16 +39,35 @@ pinned_obj_dict = {}
 
 class TrainerClass(Trainable):
     def _setup(self, config):
+        print("="*19)
+        print("== Trials config ==")
+        for k in self.config.keys():
+            print("\t {}: {}".format(k, self.config[k]))
+        print("="*19)
         self.data_loader_train = get_pinned_object(pinned_obj_dict['data_loader_train'])
         self.data_loader_valid = get_pinned_object(pinned_obj_dict['data_loader_valid'])
         self.args = get_pinned_object(pinned_obj_dict['args'])
         self.cuda_available = torch.cuda.is_available()
         print("Cuda is available: {}".format(self.cuda_available))
         self.model = get_model()
+        if self.config['train_full_network'] == 0:
+            for n, m in self.model.named_parameters():
+                m.requires_grad = False
+            self.model.classifier_1.weight.requires_grad = True
+            self.model.classifier_1.bias.requires_grad = True
+            nn.init.xavier_normal_(self.model.classifier_1.weight)
+            model.self.model.classifier_1.bias.data.fill_(0)
+        elif self.config['train_full_network'] == 1:
+            for n, m in self.model.named_parameters():
+                m.requires_grad = False
+            self.model.classifier_1.weight.requires_grad = True
+            self.model.classifier_1.bias.requires_grad = True
+        else:
+            pass
         if self.cuda_available:
-            if torch.cuda.device_count() > 1:
-                print('========= Going multi GPU ==========')
-                model = torch.nn.DataParallel(model)
+            #if torch.cuda.device_count() > 1:
+            #    print('========= Going multi GPU ==========')
+            #    self.model = torch.nn.DataParallel(self.model)
             self.model.cuda()
         opt = getattr(torch.optim, self.config['optimizer'])
         if self.config['optimizer'] == 'SGD':
@@ -62,10 +81,10 @@ class TrainerClass(Trainable):
         j = 1
         self.model.train()
         self.optimizer.zero_grad()
-        progress_bar = tq(self.data_loader_train)
-        progress_bar.set_description("Training")
+        #progress_bar = tq(self.data_loader_train)
+        #progress_bar.set_description("Training")
         avg_loss = 0.0
-        for batch_idx, (data, target, _) in enumerate(progress_bar):
+        for batch_idx, (data, target, _) in enumerate(self.data_loader_train):
             if self.cuda_available:
                 data = data.cuda(non_blocking=True)
                 target = target.cuda(non_blocking=True)
@@ -79,8 +98,8 @@ class TrainerClass(Trainable):
                 self.optimizer.zero_grad()
             else:
                 j += 1
-            if batch_idx % self.args.logFrequency == 0:
-                progress_bar.set_postfix({'Loss': '{:.3f}'.format(avg_loss/(batch_idx+1))})
+            #if batch_idx % self.args.logFrequency == 0:
+            #    progress_bar.set_postfix({'Loss': '{:.3f}'.format(avg_loss/(batch_idx+1))})
         torch.cuda.empty_cache()
         # return avg_loss/len(self.data_loader_train)
 
@@ -89,9 +108,9 @@ class TrainerClass(Trainable):
         avg_loss = 0.0
         avg_acc = 0.0
         n_samples = 0
-        progress_bar = tq(self.data_loader_valid)
-        progress_bar.set_description("Validation")
-        for batch_idx, (data, target, _) in enumerate(progress_bar):
+        #progress_bar = tq(self.data_loader_valid)
+        #progress_bar.set_description("Validation")
+        for batch_idx, (data, target, _) in enumerate(self.data_loader_valid):
             if self.cuda_available:
                 data = data.cuda(non_blocking=True)
                 target = target.cuda(non_blocking=True)
@@ -107,7 +126,7 @@ class TrainerClass(Trainable):
                     'loss': '{:.3f}'.format(avg_loss/(batch_idx+1)),
                     'acc': '{:.2f}%'.format(acc*100)
                 }
-                progress_bar.set_postfix(metrics)
+                #progress_bar.set_postfix(metrics)
         loss = avg_loss / len(self.data_loader_valid)
         acc = avg_acc / n_samples
         torch.cuda.empty_cache()
@@ -135,7 +154,7 @@ def main(args):
     if cuda_available:
         torch.cuda.manual_seed(args.seed)
 
-    ray.init(num_cpus=7, num_gpus=2)
+    ray.init(num_gpus=2)
 
     ####################
     # Init data manager
@@ -151,10 +170,10 @@ def main(args):
                                indices_step=args.indicesStep,
                                training_valid_split=args.trainValidSplit)
 
-    train_data_loader, valid_data_loader, valid_data_loader_original_data = data_manager.get_data_loaders()
+    train_data_loader, valid_data_loader = data_manager.get_data_loaders()
     pinned_obj_dict['data_loader_train'] = pin_in_object_store(train_data_loader)
     pinned_obj_dict['data_loader_valid'] = pin_in_object_store(valid_data_loader)
-    pinned_obj_dict['data_loader_valid_orig'] = pin_in_object_store(valid_data_loader_original_data)
+    #pinned_obj_dict['data_loader_valid_orig'] = pin_in_object_store(valid_data_loader_original_data)
     pinned_obj_dict['args'] = pin_in_object_store(args)
 
     trainable_name = 'hyp_search_train'
@@ -174,11 +193,12 @@ def main(args):
     # Define hyperopt search algo
     ##############################
     space = {
-        'lr': hp.uniform('lr', 0.001, 0.1),
+        'lr': hp.uniform('lr', 0.0005, 0.01),
         'momentum': hp.uniform('momentum', 0.1, 0.9),
         'optimizer': hp.choice('optimizer', ['SGD', 'Adam']),
         'weight_decay': hp.uniform('weight_decay', 1.e-5, 1.e-4),
-        'batch_accumulation': hp.choice("batch_accumulation", [4, 8, 16, 32])
+        'batch_accumulation': hp.choice('batch_accumulation', [4, 8, 16, 32]),
+        'train_full_network': hp.choice('train_full_network', [0, 1, 2])
     }
     hos = HyperOptSearch(space, max_concurrent=4, reward_attr=reward_attr)
 
@@ -191,8 +211,8 @@ def main(args):
         run=trainable_name,
         num_samples=args.numSamples,  # the number of experiments
         trial_resources={
-            "cpu": args.numCpu,
-            "gpu": args.numGpu
+            "cpu": 4,
+            "gpu": 1
         },
         checkpoint_freq=args.checkpointFreq,
         checkpoint_at_end=True,
@@ -213,7 +233,7 @@ def main(args):
     ##################
     # Run experiments
     ##################
-    run_experiments(exp, search_alg=hos, scheduler=hpb, verbose=False)
+    run_experiments(exp, search_alg=hos, scheduler=hpb, verbose=True)
 
 
 if __name__ == "__main__":
