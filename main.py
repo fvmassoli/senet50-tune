@@ -110,23 +110,24 @@ class TrainerClass(Trainable):
         n_samples = 0
         #progress_bar = tq(self.data_loader_valid)
         #progress_bar.set_description("Validation")
-        for batch_idx, (data, target, _) in enumerate(self.data_loader_valid):
-            if self.cuda_available:
-                data = data.cuda(non_blocking=True)
-                target = target.cuda(non_blocking=True)
-            output = self.model(data)
-            loss = F.cross_entropy(output, target)
-            avg_loss += loss.item()
-            y_hat = output.argmax(dim=1)
-            avg_acc += (target == y_hat).sum().item()
-            n_samples += len(target)
-            if batch_idx % self.args.logFrequency == 0:
-                acc = avg_acc / n_samples
-                metrics = {
-                    'loss': '{:.3f}'.format(avg_loss/(batch_idx+1)),
-                    'acc': '{:.2f}%'.format(acc*100)
-                }
-                #progress_bar.set_postfix(metrics)
+        with torch.no_grad():
+            for batch_idx, (data, target, _) in enumerate(self.data_loader_valid):
+                if self.cuda_available:
+                    data = data.cuda(non_blocking=True)
+                    target = target.cuda(non_blocking=True)
+                output = self.model(data)
+                loss = F.cross_entropy(output, target)
+                avg_loss += loss.item()
+                y_hat = output.argmax(dim=1)
+                avg_acc += (target == y_hat).sum().item()
+                n_samples += len(target)
+                if batch_idx % self.args.logFrequency == 0:
+                    acc = avg_acc / n_samples
+                    metrics = {
+                        'loss': '{:.3f}'.format(avg_loss/(batch_idx+1)),
+                        'acc': '{:.2f}%'.format(acc*100)
+                    }
+                    #progress_bar.set_postfix(metrics)
         loss = avg_loss / len(self.data_loader_valid)
         acc = avg_acc / n_samples
         print(metrics)

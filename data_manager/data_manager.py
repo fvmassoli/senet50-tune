@@ -39,6 +39,7 @@ class DataManager(object):
         self.lowering_resolution_prob = lowering_resolution_prob
         self.indices_step = indices_step
         self.training_valid_split = training_valid_split
+        self.mean_vector = [131.0912, 103.8827, 91.4953]
         self.train_data_set, self.valid_data_set_lr = self._init_data_sets()
         self.train_data_loader, self.valid_data_loader_lr = self._init_data_loaders()
         self._print_data_summary()
@@ -103,36 +104,34 @@ class DataManager(object):
 
     def get_data_loaders(self):
         return self.train_data_loader, self.valid_data_loader_lr #, self.valid_data_loader
+    #
+    # def _subtract_mean(self, x, mean_vector):
+    #     x *= 255.
+    #     if x.shape[0] == 1:
+    #         x = np.tile(3, 1, 1)
+    #     x[0] -= mean_vector[0]
+    #     x[1] -= mean_vector[1]
+    #     x[2] -= mean_vector[2]
+    #     return x
 
-    def _subtract_mean(self, x, mean_vector):
-        x *= 255.
-        if x.shape[0] == 1:
-            x = np.tile(3, 1, 1)
-        x[0] -= mean_vector[0]
-        x[1] -= mean_vector[1]
-        x[2] -= mean_vector[2]
-        return x
-
-    def _get_train_transforms(self, resize=256, grayed_prob=0.2, crop_size=224,
-                              mean_vector=[131.0912, 103.8827, 91.4953]):
+    def _get_train_transforms(self, resize=256, grayed_prob=0.2, crop_size=224):
         return t.Compose(
             [
                 t.Resize(resize),
                 t.RandomGrayscale(p=grayed_prob),
                 t.RandomCrop(crop_size),
                 t.ToTensor(),
-                t.Lambda(lambda x: self._subtract_mean(x, mean_vector))
+                t.Normalize(mean=np.asarray(self.mean_vector)/255., std=[1., 1., 1.])
             ]
         )
 
-    def _get_valid_transforms(self, resize=256, crop_size=224,
-                              mean_vector=[131.0912, 103.8827, 91.4953]):
+    def _get_valid_transforms(self, resize=256, crop_size=224):
         return t.Compose(
             [
                 t.Resize(resize),
                 t.CenterCrop(crop_size),
                 t.ToTensor(),
-                t.Lambda(lambda x: self._subtract_mean(x, mean_vector))
+                t.Normalize(mean=np.asarray(self.mean_vector)/255., std=[1., 1., 1.])
             ]
         )
 
