@@ -83,12 +83,12 @@ class DataManager(object):
         train_data_loader = DataLoader(dataset=tmp_train_data_set,
 #        train_data_loader = DataLoader(dataset=self.train_data_set,
                                        batch_size=self.train_batch_size,
-                                       num_workers=4,
+                                       num_workers=1,
                                        pin_memory=torch.cuda.is_available())
         valid_data_loader_lr = DataLoader(dataset=tmp_valid_data_set_lr,
 #        valid_data_loader_lr = DataLoader(dataset=self.valid_data_set_lr,
                                           batch_size=self.valid_batch_size,
-                                          num_workers=4,
+                                          num_workers=1,
                                           pin_memory=torch.cuda.is_available())
 #        valid_data_loader = DataLoader(dataset=tmp_valid_data_set,
 #        valid_data_loader = DataLoader(dataset=self.valid_data_set,

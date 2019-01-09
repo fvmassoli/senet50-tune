@@ -56,7 +56,7 @@ class TrainerClass(Trainable):
             self.model.classifier_1.weight.requires_grad = True
             self.model.classifier_1.bias.requires_grad = True
             nn.init.xavier_normal_(self.model.classifier_1.weight)
-            model.self.model.classifier_1.bias.data.fill_(0)
+            self.model.classifier_1.bias.data.fill_(0)
         elif self.config['train_full_network'] == 1:
             for n, m in self.model.named_parameters():
                 m.requires_grad = False
@@ -83,7 +83,7 @@ class TrainerClass(Trainable):
         self.optimizer.zero_grad()
         #progress_bar = tq(self.data_loader_train)
         #progress_bar.set_description("Training")
-        avg_loss = 0.0
+ #       avg_loss = 0.0
         for batch_idx, (data, target, _) in enumerate(self.data_loader_train):
             if self.cuda_available:
                 data = data.cuda(non_blocking=True)
@@ -91,7 +91,7 @@ class TrainerClass(Trainable):
             output = self.model(data)
             loss = F.cross_entropy(output, target)
             loss.backward()
-            avg_loss += loss.item()
+#            avg_loss += loss.item()
             if j % self.batch_accumulation == 0:
                 j = 1
                 self.optimizer.step()
@@ -129,6 +129,7 @@ class TrainerClass(Trainable):
                 #progress_bar.set_postfix(metrics)
         loss = avg_loss / len(self.data_loader_valid)
         acc = avg_acc / n_samples
+        print(metrics)
         torch.cuda.empty_cache()
         return {"loss": loss, "acc": acc}
 
@@ -154,7 +155,7 @@ def main(args):
     if cuda_available:
         torch.cuda.manual_seed(args.seed)
 
-    ray.init(num_gpus=2)
+    ray.init(num_gpus=1)
 
     ####################
     # Init data manager
@@ -210,7 +211,7 @@ def main(args):
         name=exp_name,
         run=trainable_name,
         num_samples=args.numSamples,  # the number of experiments
-        trial_resources={
+        resources_per_trial={
             "cpu": 4,
             "gpu": 1
         },
@@ -219,7 +220,8 @@ def main(args):
         stop={
             reward_attr: 0.95,
             "training_iteration": args.trainingIteration,  # how many times a specific config will be trained
-        }
+        },
+        local_dir="./ray_results"
     )
 
     ##################

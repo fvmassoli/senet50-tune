@@ -42,7 +42,7 @@ def launch_tensorboard(logdir):
 
 def get_model():
     print("Loading model...")
-    b = '/home/fabiom/faces/vgg_face_2/pytorch_model/senet50-tune'
+    b = '/senet50-tune'
 #    MainModel = importlib.load_source('MainModel', os.path.joi(b, 'senet50_ft_pytorch.py'))
     model = torch.load(os.path.join(b, 'senet50_ft_pytorch.pth'))
     for n, m in model.named_modules():
